@@ -1,9 +1,8 @@
 ---
 title: "Prediction assignment for peer-assessment"
 output: 
-  html_document: 
-    fig_caption: yes
-    keep_md: yes
+  md_document
+  
 ---
 
 ```{r setup, include=FALSE}
