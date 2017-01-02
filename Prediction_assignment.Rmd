@@ -6,17 +6,38 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(caret)
+library(randomForest)
+library(factoextra)
 set.seed(11255)
 ```
+## Acnowledgements
+Ugulino, W.; Cardador, D.; Vega, K.; Velloso, E.; Milidiu, R.; Fuks, H. Wearable Computing: Accelerometers' Data Classification of Body Postures and Movements. Proceedings of 21st Brazilian Symposium on Artificial Intelligence. Advances in Artificial Intelligence - SBIA 2012. In: Lecture Notes in Computer Science. , pp. 52-61. Curitiba, PR: Springer Berlin / Heidelberg, 2012. ISBN 978-3-642-34458-9. DOI: 10.1007/978-3-642-34459-6_6. 
+Cited by 2 (Google Scholar)
+
+Read more: http://groupware.les.inf.puc-rio.br/har#ixzz4UbtiyO7m
+
 ## The goal
 One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants.
 The goal of the project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. 
 ## Download data:
 ```{r}
-download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv",destfile = "pml-training.csv")
-download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv",destfile = "pml-testing.csv")
+destfile1 = "pml-training.csv"
+if(!file.exists(destfile1)){
+  download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv",destfile = destfile1)
+}
+destfile2 = "pml-training.csv"
+if(!file.exists(destfile2)){
+  download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv",destfile = destfile2)
+}
 labeled_data <- read.csv2("pml-training.csv",header = TRUE, na.strings = "NA", sep = ",", quote = "\"",dec = ".")
 quiz_data <- read.csv2("pml-testing.csv",header = TRUE, na.strings = "NA", sep = ",", quote = "\"",dec = ".")
+
+lbl_numbs <- sapply(labeled_data, is.numeric)
+quz_numbs <- sapply(quiz_data,is.numeric)
+
+#labeled_data$date <- as.POSIXct(alabeled_data$cvdt_timestamp,format = "d/m/Y h:m")
+
+
 dim(labeled_data)
 dim(quiz_data)
 table(labeled_data$classe, labeled_data$user_name)
@@ -41,10 +62,55 @@ table(valid_data$classe, valid_data$user_name)
 
 
 ## Variables
-We are going to use all variables  of the other variables to predict with. 
+We are going to use 36 numeric mesurements with "gyros", "accel" and "magnet" prefixes for different points on the athlet body. 
+Preprocessed using PCA to make an extract of information about athlet movements. 
 
+```{r}
+gyros_columns <- c("gyros_belt_x", "gyros_belt_y" , "gyros_belt_z", 
+                   "gyros_arm_x","gyros_arm_y","gyros_arm_z",
+                   "gyros_dumbbell_x","gyros_dumbbell_y","gyros_dumbbell_z",
+                   "gyros_forearm_x", "gyros_forearm_y", "gyros_forearm_z")
+accel_columns <- c("accel_belt_x", "accel_belt_y" , "accel_belt_z", 
+                   "accel_arm_x","accel_arm_y","accel_arm_z",
+                   "accel_dumbbell_x","accel_dumbbell_y","accel_dumbbell_z",
+                   "accel_forearm_x", "accel_forearm_y", "accel_forearm_z")
+magnet_columns <- c("magnet_belt_x", "magnet_belt_y" , "magnet_belt_z",
+                    "magnet_arm_x","magnet_arm_y","magnet_arm_z",
+                    "magnet_dumbbell_x","magnet_dumbbell_y","magnet_dumbbell_z", 
+                    "magnet_forearm_x", "magnet_forearm_y", "magnet_forearm_z")
+choosen_columns<- c(gyros_columns,accel_columns, magnet_columns)
+
+num_prcomp <- prcomp(train_data[,choosen_columns])
+
+eig.val <- get_eigenvalue(num_prcomp)
+
+plot(eig.val$cumulative.variance.percent, type= "line", xlab="Number of PC", ylab = "Cumulative variance percent", main = "How many principal components are informaative?")
+abline(h=95, col="blue")
+abline(h=99,col = "red")
+```
+Let's look at PC's variances too:
+
+```{r}
+fviz_screeplot(num_prcomp, ncp=36)
+```
+Prepare quiz, training, test and validation data in terms of PC's:
+```{r}
+train_PC <- predict(num_prcomp, newdata = train_data[,choosen_columns])
+test_PC <- predict(num_prcomp, newdata = test_data[,choosen_columns])
+valid_PC <- predict(num_prcomp, newdata = valid_data[,choosen_columns])
+quiz_PC <- predict(num_prcomp, newdata = quiz_data[,choosen_columns])
+```
 ## How we build the model
+We are going to make our predictions using random forests, for 8, 10, 12 and 14 PCA.
+
 You should create a report describing how you built your model, how you used cross validation, what you think the expected out of sample error is, and why you made the choices you did. You will also use your prediction model to predict 20 different test cases.
+```{r}
+dim(train_PC)
+dim(train_data$classe)
+
+```
+
+
 
 
 
