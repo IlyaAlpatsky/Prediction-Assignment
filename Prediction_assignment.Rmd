@@ -1,0 +1,51 @@
+---
+title: "Prediction assignment for peer-assessment"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(caret)
+set.seed(11255)
+```
+## The goal
+One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants.
+The goal of the project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. 
+## Download data:
+```{r}
+download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv",destfile = "pml-training.csv")
+download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv",destfile = "pml-testing.csv")
+labeled_data <- read.csv2("pml-training.csv",header = TRUE, na.strings = "NA", sep = ",", quote = "\"",dec = ".")
+quiz_data <- read.csv2("pml-testing.csv",header = TRUE, na.strings = "NA", sep = ",", quote = "\"",dec = ".")
+dim(labeled_data)
+dim(quiz_data)
+table(labeled_data$classe, labeled_data$user_name)
+table(quiz_data$user_name)
+```
+## Training, test and validation data
+We'll split labeled data into 3 subsets: 60% - training data, 20% - test data and 20% - validation data
+```{r}
+inTrain <- createDataPartition(y=labeled_data$classe, p = 0.6, list=FALSE)
+train_data <- labeled_data[inTrain,]
+test_data <- labeled_data[-inTrain,]
+
+inTest <- createDataPartition(y=test_data$classe, p=0.5, list = FALSE)
+valid_data <- test_data[-inTest,]
+test_data <- test_data[inTest,]
+
+table(train_data$classe, train_data$user_name)
+table(test_data$classe, test_data$user_name)
+table(valid_data$classe, valid_data$user_name)
+
+```
+
+
+## Variables
+We are going to use all variables  of the other variables to predict with. 
+
+## How we build the model
+You should create a report describing how you built your model, how you used cross validation, what you think the expected out of sample error is, and why you made the choices you did. You will also use your prediction model to predict 20 different test cases.
+
+
+
+
