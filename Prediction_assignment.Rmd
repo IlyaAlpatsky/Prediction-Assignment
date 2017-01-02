@@ -10,6 +10,7 @@ library(randomForest)
 library(factoextra)
 set.seed(11255)
 ```
+
 ## Acnowledgements
 Ugulino, W.; Cardador, D.; Vega, K.; Velloso, E.; Milidiu, R.; Fuks, H. Wearable Computing: Accelerometers' Data Classification of Body Postures and Movements. Proceedings of 21st Brazilian Symposium on Artificial Intelligence. Advances in Artificial Intelligence - SBIA 2012. In: Lecture Notes in Computer Science. , pp. 52-61. Curitiba, PR: Springer Berlin / Heidelberg, 2012. ISBN 978-3-642-34458-9. DOI: 10.1007/978-3-642-34459-6_6. 
 Cited by 2 (Google Scholar)
@@ -19,6 +20,7 @@ Read more: http://groupware.les.inf.puc-rio.br/har#ixzz4UbtiyO7m
 ## The goal
 One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants.
 The goal of the project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. 
+
 ## Download data:
 ```{r}
 destfile1 = "pml-training.csv"
@@ -31,16 +33,14 @@ if(!file.exists(destfile2)){
 }
 labeled_data <- read.csv2("pml-training.csv",header = TRUE, na.strings = "NA", sep = ",", quote = "\"",dec = ".")
 quiz_data <- read.csv2("pml-testing.csv",header = TRUE, na.strings = "NA", sep = ",", quote = "\"",dec = ".")
-
 lbl_numbs <- sapply(labeled_data, is.numeric)
 quz_numbs <- sapply(quiz_data,is.numeric)
-
-
 dim(labeled_data)
 dim(quiz_data)
 table(labeled_data$classe, labeled_data$user_name)
 table(quiz_data$user_name)
 ```
+
 ## Training, test and validation data
 There is a lot of data. We'll split labeled data into 3 subsets: 40% - training data, 30% - test data and 30% - validation data
 ```{r}
@@ -86,6 +86,7 @@ plot(eig.val$cumulative.variance.percent, type= "line", xlab="Number of PC", yla
 abline(h=95, col="blue")
 abline(h=99,col = "red")
 ```
+
 Let's look at PC's variances too:
 
 ```{r}
@@ -103,14 +104,11 @@ valid_PC<-cbind(data.frame(valid_PC), classe = as.factor(valid_data$classe))
 quiz_PC <- predict(num_prcomp, newdata = quiz_data[,choosen_columns])
 quiz_PC <- data.frame(quiz_PC)
 ```
+
 ## How we build the model
 We are going to make our predictions using random forests, for  14, 16, 18, 22, 24, 26,28, 36  PC's.
-
-You should create a report describing how you built your model, how you used cross validation, what you think the expected out of sample error is, and why you made the choices you did. You will also use your prediction model to predict 20 different test cases.
 ```{r}
-
-
-
+#fit random forests for different sets of PC's
 fit_14 <- randomForest(train_PC$classe ~ PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10+PC11+PC12+PC13+PC14, type="classification",data = train_PC)
 fit_16 <- randomForest(train_PC$classe ~ PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10+PC11+PC12+PC13+PC14+PC15+PC16, type="classification",data = train_PC)
 fit_18 <- randomForest(train_PC$classe ~ PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10+PC11+PC12+PC13+PC14+PC15+PC16+PC17+PC18, type="classification",data = train_PC)
@@ -119,11 +117,7 @@ fit_24 <- randomForest(train_PC$classe ~ PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC1
 fit_26 <- randomForest(train_PC$classe ~ PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10+PC11+PC12+PC13+PC14+PC15+PC16+PC17+PC18+PC19+PC20+PC21+PC22+PC23+PC24+PC25+PC26, type="classification",data = train_PC)
 fit_28 <- randomForest(train_PC$classe ~ PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10+PC11+PC12+PC13+PC14+PC15+PC16+PC17+PC18+PC19+PC20+PC21+PC22+PC23+PC24+PC25+PC26+PC27+PC28, type="classification",data = train_PC)
 fit_36 <- randomForest(train_PC$classe ~ ., type="classification",data = train_PC)
-
-
-
-
-
+#estimate classes for test sample
 test_class_14 <- predict(fit_14, test_PC)
 test_class_16 <- predict(fit_16, test_PC)
 test_class_18 <- predict(fit_18, test_PC)
@@ -132,10 +126,7 @@ test_class_24 <- predict(fit_24, test_PC)
 test_class_26 <- predict(fit_26, test_PC)
 test_class_28 <- predict(fit_28, test_PC)
 test_class_36 <- predict(fit_36, test_PC)
-
-#head(cbind(test_class_4,test_PC$classe))
-
-
+#estimate test accuracy
 lng <- length(test_PC$classe)
 test_Acc <- data.frame(PC_count=c(14,16,18,22,24,26,28,36), 
                        Test_accuracy= c(sum(test_class_14 == test_PC$classe)/lng,
@@ -147,32 +138,32 @@ test_Acc <- data.frame(PC_count=c(14,16,18,22,24,26,28,36),
                                   sum(test_class_28 == test_PC$classe)/lng,
                                   sum(test_class_36 == test_PC$classe)/lng))
 
-
-plot(test_Acc$Test_accuracy,x = test_Acc$PC_count)
-
+#output results
+plot(test_Acc$Test_accuracy,x = test_Acc$PC_count, xlab="PC's count", ylab="Accuracy on test set", main = "Accuracy on the test set as function of number of PC's")
 print(test_Acc)
 
 ```
-The best test error related to random forest created using all PC's.
-The best test (out of sample error) is less then train error and equal to {r test_Acc[8,2]}
+
+The best test error related to random forest created using all PC's. But results are very similar so may be it is good enough to use only 18 PC's.
+The best test (out of sample error) is less then train error and equal to `r format(test_Acc[8,2], digits=3, nsmall=2)`
 
 ##Validation (evaluate choosen forest performance)
 Missclassification matrix in the table:
 ```{r}
 
 valid_class_36 <- predict(fit_36, valid_PC)
-table(valid_class_36,valid_PC$classe)
+table(EstimatedValue=valid_class_36,KnownValue=valid_PC$classe)
 valid_accuracy <- sum(valid_class_36 == valid_PC$classe)/length(valid_PC$classe)
 ```
-Accuracy on validation data is: {r valid_accuracy}
+Accuracy on validation data is: `r format(valid_accuracy, digits=3, nsmall=2)`
 
-## Quiz data calculations:
+### Quiz data calculations:
 ```{r}
-
 quiz_class_36 <- predict(fit_36, quiz_PC)
 print(quiz_class_36)
 ```
 
+ps The quiz result is 95% too!
 
 
 
