@@ -106,57 +106,45 @@ quiz_PC <- predict(num_prcomp, newdata = quiz_data[,choosen_columns])
 quiz_PC <- data.frame(quiz_PC)
 ```
 ## How we build the model
-We are going to make our predictions using random forests, for 4, 8, 10, 12 and 14 PCA.
+We are going to make our predictions using random forests, for 10, 14, 16, 18, 22 PC's.
 
 You should create a report describing how you built your model, how you used cross validation, what you think the expected out of sample error is, and why you made the choices you did. You will also use your prediction model to predict 20 different test cases.
 ```{r}
 
-table(test_PC$classe)
 
-fit_4 <- randomForest(classe ~ PC1+PC2+PC3+PC4, type="classification",data = train_PC)
-fit_8 <- randomForest(train_PC$classe ~ PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8, type="classification",data = train_PC)
 fit_10 <- randomForest(train_PC$classe ~ PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10, type="classification",data = train_PC)
-fit_12 <- randomForest(train_PC$classe ~ PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10+PC11+PC12, type="classification",data = train_PC)
 fit_14 <- randomForest(train_PC$classe ~ PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10+PC11+PC12+PC13+PC14, type="classification",data = train_PC)
+fit_16 <- randomForest(train_PC$classe ~ PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10+PC11+PC12+PC13+PC14+PC15+PC16, type="classification",data = train_PC)
 fit_18 <- randomForest(train_PC$classe ~ PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10+PC11+PC12+PC13+PC14+PC15+PC16+PC17+PC18, type="classification",data = train_PC)
+fit_22 <- randomForest(train_PC$classe ~ PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10+PC11+PC12+PC13+PC14+PC15+PC16+PC17+PC18+PC19+PC20+PC21+PC22, type="classification",data = train_PC)
 
-train_class_4 <- predict(fit_4, train_PC)
-test_class_4 <- predict(fit_4, test_PC)
 
-train_class_8 <- predict(fit_8, train_PC)
-test_class_8 <- predict(fit_8, test_PC)
 
-train_class_10 <- predict(fit_10, train_PC)
 test_class_10 <- predict(fit_10, test_PC)
 
-train_class_12 <- predict(fit_12, train_PC)
-test_class_12 <- predict(fit_12, test_PC)
-
-train_class_14 <- predict(fit_14, train_PC)
 test_class_14 <- predict(fit_14, test_PC)
 
-train_class_18 <- predict(fit_18, train_PC)
+test_class_16 <- predict(fit_16, test_PC)
+
 test_class_18 <- predict(fit_18, test_PC)
 
+test_class_22 <- predict(fit_22, test_PC)
+
 #head(cbind(test_class_4,test_PC$classe))
-lng <- length(train_PC$classe)
-train_Acc <- c(sum(train_class_4 == train_PC$classe)/lng,
-               sum(train_class_8 == train_PC$classe)/lng,
-               sum(train_class_10 == train_PC$classe)/lng,
-               sum(train_class_12 == train_PC$classe)/lng,
-               sum(train_class_14 == train_PC$classe)/lng,
-               sum(train_class_18 == train_PC$classe)/lng)
+
 
 lng <- length(test_PC$classe)
-test_Acc <- c(sum(test_class_4 == test_PC$classe)/lng,
-               sum(test_class_8 == test_PC$classe)/lng,
-               sum(test_class_10 == test_PC$classe)/lng,
-               sum(test_class_12 == test_PC$classe)/lng,
-               sum(test_class_14 == test_PC$classe)/lng,
-               sum(test_class_18 == test_PC$classe)/lng)
+test_Acc <- data.frame(PC_count=c(10,14,16,18,22), 
+                       Test_accuracy= c(sum(test_class_10 == test_PC$classe)/lng,
+                                    sum(test_class_14 == test_PC$classe)/lng,
+                                   sum(test_class_16 == test_PC$classe)/lng,
+                                   sum(test_class_18 == test_PC$classe)/lng,
+                                   sum(test_class_22 == test_PC$classe)/lng))
 
-plot(train_Acc,type = "line",col = "blue")
-plot(test_Acc, type="line", col = "red")
+
+plot(test_Acc$Test_accuracy)
+
+#plot(y=test_Acc$Test_Accuracy, x=test_Acc$PC_count, main = "Test accuracy from the number of PC used for random forest", xlab="Number of PC used", ylab = "Accuracy on the test set")
 
 
 #table(test_class_4,test_PC$classe)
